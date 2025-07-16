@@ -19,4 +19,12 @@ fi
 # Start the application
 echo "🌟 Starting server on port $PORT..."
 cd /app/backend
-exec node dist/index.js
+
+# Try compiled version first, then fallback to TypeScript source
+if [ -f "dist/index.js" ]; then
+    echo "📦 Running compiled version..."
+    exec node dist/index.js
+else
+    echo "🔧 Running TypeScript source..."
+    exec npx ts-node src/index.ts
+fi

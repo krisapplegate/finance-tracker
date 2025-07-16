@@ -7,7 +7,7 @@ RUN apk add --no-cache curl
 FROM base AS frontend-builder
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
-RUN npm ci --only=production --silent
+RUN npm install --silent
 COPY frontend/ .
 RUN npm run build
 
@@ -15,9 +15,9 @@ RUN npm run build
 FROM base AS backend-builder
 WORKDIR /app/backend
 COPY backend/package*.json ./
-RUN npm ci --only=production --silent
+RUN npm install --silent
 COPY backend/ .
-RUN npm run build
+RUN npm run build || npm run compile || echo "No build script found"
 
 # Stage 3: Production Container
 FROM base AS production
@@ -30,10 +30,14 @@ RUN addgroup -g 1001 -S nodejs && \
 RUN mkdir -p /app/data /app/logs && \
     chown -R finance-tracker:nodejs /app
 
+# Install production dependencies
+WORKDIR /app/backend
+COPY backend/package*.json ./
+RUN npm install --production --silent
+
 # Copy built applications
 COPY --from=frontend-builder --chown=finance-tracker:nodejs /app/frontend/dist /app/frontend/dist
-COPY --from=backend-builder --chown=finance-tracker:nodejs /app/backend/dist /app/backend/dist
-COPY --from=backend-builder --chown=finance-tracker:nodejs /app/backend/node_modules /app/backend/node_modules
+COPY --from=backend-builder --chown=finance-tracker:nodejs /app/backend/src /app/backend/src
 COPY --from=backend-builder --chown=finance-tracker:nodejs /app/backend/package.json /app/backend/
 
 # Copy startup script

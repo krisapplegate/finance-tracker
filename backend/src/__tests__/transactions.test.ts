@@ -1,11 +1,9 @@
 import request from 'supertest';
-import { app } from '../index';
-import { initializeDatabase } from '../database/init';
+import { createApp } from '../app';
+
+const app = createApp();
 
 describe('Transactions API', () => {
-  beforeAll(async () => {
-    await initializeDatabase();
-  });
 
   describe('GET /api/transactions', () => {
     it('should return empty array when no transactions exist', async () => {
