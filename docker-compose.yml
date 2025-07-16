@@ -1,0 +1,32 @@
+# Docker Compose for local development and testing
+version: '3.8'
+
+services:
+  finance-tracker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "3000:3000"
+    volumes:
+      - finance_tracker_data:/app/data
+      - finance_tracker_logs:/app/logs
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_PATH=/app/data/finance.db
+      - JWT_SECRET=your-development-jwt-secret-change-in-production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  finance_tracker_data:
+    driver: local
+  finance_tracker_logs:
+    driver: local
